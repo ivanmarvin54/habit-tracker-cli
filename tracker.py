@@ -1,6 +1,11 @@
 import json
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+
+console = Console()
 
 DATA_FILE = Path(__file__).parent / "data.json"
 
@@ -50,12 +55,18 @@ def delete_habit(data: dict, name: str) -> None:
 
 
 def list_habits(data: dict) -> None:
+    """Показывает все привычки в виде красивой таблицы."""
     if not data:
-        print("Список пуст")
+        console.print("[yellow]Список пуст[/yellow]")
         return
+    table = Table(titile="Твои привычки", show_header=True, header_style="bold magenta")
+    table.add_column("№", style="dim")
+    table.add_column("Название")
+    table.add_column("Выполнено", justify="right")
     for i, (name, info) in enumerate(data.items(), 1):
         count = len(info["done_dates"])
-        print(f"{i}. {name} — сделано {count} раз")
+        table.add_row(str(i), name, f"{count} раз")
+        console.print(table)
 
 
 def calculate_streak(done_dates: list[str]) -> int:
@@ -107,13 +118,18 @@ def main() -> None:
     data = load_data()
 
     while True:
-        print("\n--- ТРЕКЕР ПРИВЫЧЕК ---")
-        print("1. Показать привычки")
-        print("2. Добавить привычку")
-        print("3. Отметить выполнение")
-        print("4. Удалить")
-        print("5. Выход")
-        print("6. Статистика")
+        console.print(Panel.fit(
+            "[bold cyan]ТРЕКЕР ПРИВЫЧЕК[/bold cyan]\n\n"
+            "[green]1.[/green] Показать привычки\n"
+            "[green]2.[/green] Добавить привычку\n"
+            "[green]3.[/green] Отметить выполнение\n"
+            "[green]4.[/green] Удалить\n"
+            "[green]5.[/green] Выход\n"
+            "[green]6.[/green] Статистика",
+            title="Меню",
+            border_style="blue"
+        ))
+       
 
         choice = input("Твой выбор: ").strip()
 
@@ -158,7 +174,7 @@ def main() -> None:
             
         elif choice == "5":
             save_data(data)
-            print("Пока!")
+            console.print("[bold red]Пока![/bold red]")
             break
             
         elif choice == "6":
